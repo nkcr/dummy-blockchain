@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"dummy-blockchain/blockchain"
 	bc "dummy-blockchain/blockchain"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -10,20 +12,29 @@ import (
 	"text/template"
 )
 
-// NodeHandler ...
+// NodeHandler is the HTML endpoint to add a node
 func NodeHandler(blockchain *bc.Blockchain) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
-			NodeGet(w, r, blockchain)
+			nodeGet(w, r, blockchain)
 		case http.MethodPost:
-			NodePost(w, r, blockchain)
+			nodePost(w, r, blockchain)
 		}
 	}
 }
 
-// NodeGet ...
-func NodeGet(w http.ResponseWriter, r *http.Request, blockchain *bc.Blockchain) {
+// ConnectNodesHandler is the REST endpoint to add new nodes
+func ConnectNodesHandler(blockchain *bc.Blockchain) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			nodePost(w, r, blockchain)
+		}
+	}
+}
+
+func nodeGet(w http.ResponseWriter, r *http.Request, blockchain *bc.Blockchain) {
 
 	t, err := template.ParseFiles("gui/views/layout.gohtml", "gui/views/node.gohtml")
 	if err != nil {
@@ -53,8 +64,7 @@ func NodeGet(w http.ResponseWriter, r *http.Request, blockchain *bc.Blockchain) 
 	}
 }
 
-// NodePost ...
-func NodePost(w http.ResponseWriter, r *http.Request, blockchain *bc.Blockchain) {
+func nodePost(w http.ResponseWriter, r *http.Request, blockchain *bc.Blockchain) {
 
 	err := r.ParseForm()
 	if err != nil {
@@ -98,5 +108,43 @@ func NodePost(w http.ResponseWriter, r *http.Request, blockchain *bc.Blockchain)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Content-Length", strconv.Itoa(len(formData.Encode())))
 
-	NodeGet(w, req, blockchain)
+	nodeGet(w, req, blockchain)
+}
+
+func connectNodeHandler(w http.ResponseWriter, r *http.Request, blockchain *blockchain.Blockchain) {
+
+	type addNodeRequest struct {
+		Nodes []*bc.Node
+	}
+
+	var addRequest addNodeRequest
+	err := json.NewDecoder(r.Body).Decode(&addRequest)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	for _, node := range addRequest.Nodes {
+		blockchain.AddNode(node)
+	}
+
+	var resp = struct {
+		Message    string
+		TotalNodes int
+		Nodes      []*bc.Node
+	}{
+		"Nodes added",
+		len(blockchain.Nodes),
+		blockchain.Nodes,
+	}
+
+	respJSON, err := json.MarshalIndent(resp, "", "")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	w.Write(respJSON)
 }

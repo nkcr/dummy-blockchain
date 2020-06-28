@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"dummy-blockchain/blockchain"
-	bc "dummy-blockchain/blockchain"
 	"dummy-blockchain/gui/controllers"
 	"encoding/json"
 	"flag"
@@ -27,7 +26,7 @@ const (
 
 func main() {
 	var listenAddr string
-	flag.StringVar(&listenAddr, "listen-addr", ":5002", "server listen address")
+	flag.StringVar(&listenAddr, "listen-addr", ":8080", "server listen address")
 	var ownerAddr string
 	flag.StringVar(&ownerAddr, "owner", "alice", "owner address to which the "+
 		"transaction fees are given")
@@ -46,23 +45,32 @@ func main() {
 	fs := http.FileServer(http.Dir("./gui/assets"))
 	mux.Handle("/assets/", http.StripPrefix("/assets/", fs))
 
+	// HTML endpoint
 	mux.HandleFunc("/", controllers.HomeHandler(blockchain, ownerAddr))
-	// HTML form endpoint
+	// REST endpoint
+	mux.HandleFunc("/get_chain", controllers.GetChainHandler(blockchain))
+
+	// HTML endpoint
 	mux.HandleFunc("/transaction", controllers.TransactionHandler(blockchain))
 	// REST endpoint
 	mux.HandleFunc("/add_transaction", controllers.AddTransactionHandler(blockchain))
 
+	// HTML endpoint
 	mux.HandleFunc("/mine", controllers.MineHandler(blockchain, ownerAddr))
+	// REST endpoint
+	mux.HandleFunc("/mine_block", controllers.MineRESTHandler(blockchain, ownerAddr))
 
-	mux.HandleFunc("/node", controllers.NodeHandler(blockchain))
-
+	// HTML endpoint
 	mux.HandleFunc("/replace", controllers.ReplaceHandler(blockchain))
+	// REST endpoint
+	mux.HandleFunc("/replace_chain", controllers.ReplaceChainHandler(blockchain))
 
-	mux.HandleFunc("/mine_block", mineHandler(blockchain, ownerAddr))
-	mux.HandleFunc("/get_chain", getChainHandler(blockchain))
+	// HTML endpoint
+	mux.HandleFunc("/node", controllers.NodeHandler(blockchain))
+	// REST endpoint
+	mux.HandleFunc("/connect_node", controllers.ConnectNodesHandler(blockchain))
+
 	mux.HandleFunc("/is_valid", isValidHandler(blockchain))
-	mux.HandleFunc("/connect_node", connectNodeHandler(blockchain))
-	mux.HandleFunc("/replace_chain", replaceChainHandler(blockchain))
 
 	nextRequestID := func() string {
 		return fmt.Sprintf("%d", time.Now().UnixNano())
@@ -158,146 +166,6 @@ func isValidHandler(blockchain *blockchain.Blockchain) http.HandlerFunc {
 			IsValid bool
 		}{
 			isValid,
-		}
-
-		respJSON, err := json.MarshalIndent(resp, "", "")
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(respJSON)
-	}
-}
-
-func getChainHandler(blockchain *blockchain.Blockchain) http.HandlerFunc {
-	return func(w http.ResponseWriter, req *http.Request) {
-		if req.Method != http.MethodGet {
-			http.Error(w, "only GET is allowed", http.StatusBadRequest)
-			return
-		}
-
-		resp := bc.GetCHainResponse{
-			Numblocks:  len(blockchain.Chain),
-			Blockchain: blockchain,
-		}
-
-		respJSON, err := json.MarshalIndent(resp, "", "")
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(respJSON)
-	}
-}
-
-func mineHandler(blockchain *blockchain.Blockchain, me string) http.HandlerFunc {
-	return func(w http.ResponseWriter, req *http.Request) {
-		if req.Method != http.MethodGet {
-			http.Error(w, "only Get is allowed", http.StatusBadRequest)
-			return
-		}
-
-		previousBblock := blockchain.GetPreviousBlock()
-		proof := blockchain.ProofOfWork(previousBblock.Proof)
-		previousHash, err := previousBblock.Hash()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		// transaction fee, sending money to myself
-		t := bc.NewTransaction(blockchain.Address, me, 1)
-		blockchain.AddTransaction(t)
-
-		block := blockchain.CreateBlock(proof, previousHash)
-		var resp = struct {
-			Message string
-			Block   *bc.Block
-		}{
-			"You mined a new block!",
-			block,
-		}
-
-		respJSON, err := json.MarshalIndent(resp, "", "")
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(respJSON)
-	}
-}
-
-func connectNodeHandler(blockchain *blockchain.Blockchain) http.HandlerFunc {
-	return func(w http.ResponseWriter, req *http.Request) {
-		if req.Method != http.MethodPost {
-			http.Error(w, "only POST is allowed", http.StatusBadRequest)
-			return
-		}
-
-		type addNodeRequest struct {
-			Nodes []*bc.Node
-		}
-
-		var addRequest addNodeRequest
-		err := json.NewDecoder(req.Body).Decode(&addRequest)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		for _, node := range addRequest.Nodes {
-			blockchain.AddNode(node)
-		}
-
-		var resp = struct {
-			Message    string
-			TotalNodes int
-			Nodes      []*bc.Node
-		}{
-			"Nodes added",
-			len(blockchain.Nodes),
-			blockchain.Nodes,
-		}
-
-		respJSON, err := json.MarshalIndent(resp, "", "")
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
-		w.Write(respJSON)
-	}
-}
-
-func replaceChainHandler(blockchain *blockchain.Blockchain) http.HandlerFunc {
-	return func(w http.ResponseWriter, req *http.Request) {
-		if req.Method != http.MethodGet {
-			http.Error(w, "only GET is allowed", http.StatusBadRequest)
-			return
-		}
-
-		replaced, err := blockchain.ReplaceChain()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		var resp = struct {
-			Message    string
-			IsReplaced bool
-			Blockchain []*bc.Block
-		}{
-			"Blockchain checked and replaced if shortest",
-			replaced,
-			blockchain.Chain,
 		}
 
 		respJSON, err := json.MarshalIndent(resp, "", "")

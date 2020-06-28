@@ -2,25 +2,35 @@ package controllers
 
 import (
 	bc "dummy-blockchain/blockchain"
+	"encoding/json"
 	"net/http"
 	"text/template"
 )
 
-// HomeHandler ...
+// HomeHandler is the HTTP handler to view the chain
 func HomeHandler(blockchain *bc.Blockchain, me string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
-			HomeGet(w, r, blockchain, me)
+			homeGet(w, r, blockchain, me)
 		case http.MethodPost:
 			// to post flash
-			HomeGet(w, r, blockchain, me)
+			homeGet(w, r, blockchain, me)
 		}
 	}
 }
 
-// HomeGet ...
-func HomeGet(w http.ResponseWriter, r *http.Request, blockchain *bc.Blockchain, me string) {
+// GetChainHandler is the REST handler to get the chain
+func GetChainHandler(blockchain *bc.Blockchain) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			getChainREST(w, r, blockchain)
+		}
+	}
+}
+
+func homeGet(w http.ResponseWriter, r *http.Request, blockchain *bc.Blockchain, me string) {
 
 	if r.URL.Path != "/" {
 		RenderHTTPError(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -49,7 +59,7 @@ func HomeGet(w http.ResponseWriter, r *http.Request, blockchain *bc.Blockchain, 
 	}
 }
 
-// RenderHTTPError ...
+// RenderHTTPError is a utility function to render a user-friendly error
 func RenderHTTPError(w http.ResponseWriter, message string, code int) {
 
 	var viewData = struct {
@@ -77,4 +87,21 @@ func RenderHTTPError(w http.ResponseWriter, message string, code int) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(code)
+}
+
+func getChainREST(w http.ResponseWriter, r *http.Request, blockchain *bc.Blockchain) {
+
+	resp := bc.GetCHainResponse{
+		Numblocks:  len(blockchain.Chain),
+		Blockchain: blockchain,
+	}
+
+	respJSON, err := json.MarshalIndent(resp, "", "")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(respJSON)
 }

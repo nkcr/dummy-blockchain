@@ -2,6 +2,7 @@ package controllers
 
 import (
 	bc "dummy-blockchain/blockchain"
+	"encoding/json"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -9,20 +10,29 @@ import (
 	"text/template"
 )
 
-// ReplaceHandler ...
+// ReplaceHandler is HTTP form handler
 func ReplaceHandler(blockchain *bc.Blockchain) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
-			ReplaceGet(w, r, blockchain)
+			replaceGet(w, r, blockchain)
 		case http.MethodPost:
-			ReplacePost(w, r, blockchain)
+			replacePost(w, r, blockchain)
 		}
 	}
 }
 
-// ReplaceGet ...
-func ReplaceGet(w http.ResponseWriter, r *http.Request, blockchain *bc.Blockchain) {
+// ReplaceChainHandler is the REST handler
+func ReplaceChainHandler(blockchain *bc.Blockchain) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			replaceChainREST(w, r, blockchain)
+		}
+	}
+}
+
+func replaceGet(w http.ResponseWriter, r *http.Request, blockchain *bc.Blockchain) {
 
 	t, err := template.ParseFiles("gui/views/layout.gohtml", "gui/views/replace.gohtml")
 	if err != nil {
@@ -52,8 +62,7 @@ func ReplaceGet(w http.ResponseWriter, r *http.Request, blockchain *bc.Blockchai
 	}
 }
 
-// ReplacePost ...
-func ReplacePost(w http.ResponseWriter, r *http.Request, blockchain *bc.Blockchain) {
+func replacePost(w http.ResponseWriter, r *http.Request, blockchain *bc.Blockchain) {
 
 	replaced, err := blockchain.ReplaceChain()
 	if err != nil {
@@ -82,5 +91,33 @@ func ReplacePost(w http.ResponseWriter, r *http.Request, blockchain *bc.Blockcha
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Content-Length", strconv.Itoa(len(formData.Encode())))
 
-	ReplaceGet(w, req, blockchain)
+	replaceGet(w, req, blockchain)
+}
+
+func replaceChainREST(w http.ResponseWriter, r *http.Request, blockchain *bc.Blockchain) {
+
+	replaced, err := blockchain.ReplaceChain()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var resp = struct {
+		Message    string
+		IsReplaced bool
+		Blockchain []*bc.Block
+	}{
+		"Blockchain checked and replaced if shortest",
+		replaced,
+		blockchain.Chain,
+	}
+
+	respJSON, err := json.MarshalIndent(resp, "", "")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(respJSON)
 }
