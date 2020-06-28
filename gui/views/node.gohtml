@@ -1,0 +1,30 @@
+{{ define "title" }}{{.Title}}{{ end }}
+
+{{ define "headContent" }}
+  <link rel="stylesheet" href="/assets/stylesheets/node.css">
+{{ end }}
+
+{{ define "content" }}
+
+{{ if .Flash }}
+    <div class="flash">
+        {{ .Flash }}
+    </div>
+{{ end }}
+
+<h2>Add a node</h2>
+
+<form action="/node" method="post" >
+    <div class="row">
+        <label for="host">Host name</label>
+        <input placeholder="127.0.0.1" id="host" required type="text" name="host"/>
+    </div>
+    <div class="row">
+        <label for="port">Port</label>
+        <input placeholder="8081" id="port" required type="number" name="port"/>
+    </div>
+
+    <input type="submit" value="Add node" />
+</form>
+
+{{ end }}

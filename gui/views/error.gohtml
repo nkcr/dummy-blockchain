@@ -1,0 +1,32 @@
+{{define "error"}}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+
+    <link rel="stylesheet" href="/assets/stylesheets/flash.css">
+    <link rel="stylesheet" href="/assets/stylesheets/error.css">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+    <title>Errora {{ .Code }}</title>
+  </head>
+  <body>
+
+    <div class="container">
+        <h1>Something bad happended</h1>
+
+        <a href="/">back to home</a>
+
+        <pre>Code {{ .Code }}</pre>
+        <div class="message">
+            <pre>{{ .Message }}</pre>
+        </div>
+    </div>
+
+  </body>
+</html>
+{{end}}

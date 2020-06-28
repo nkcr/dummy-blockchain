@@ -1,0 +1,89 @@
+{{ define "title" }}{{.Title}}{{ end }}
+
+{{ define "headContent" }}
+  <link rel="stylesheet" href="/assets/stylesheets/home.css">
+{{ end }}
+
+{{ define "content" }}
+
+<h3 class="chain"><span>Chain</span> <span>Chain ID: <code>{{ .BC.Address }}</code></span></h3>
+
+<div class="blocks">
+    {{ range $i, $block := .BC.Chain }}
+        <div class="block">
+            <p>#{{ $block.Index }}</p>
+            <div class="item">
+                <span>Timestamp:</span>
+                <span class="item">{{ $block.Timestamp }}</span>
+            </div>
+            <div class="item">
+                <span>Proof:</span>
+                <span class="item">{{ $block.Proof }}</span>
+            </div>
+            <div class="item">
+                <span>PrevHash:</span>
+                <span class="item">{{ $block.PrevHash }}</span>
+            </div>
+            <p>Transactions:</p>
+            <div class="transactions">
+                {{ range $j, $tx := $block.Transactions }}
+                    <div class="transaction">
+            <div class="item">
+                <span>Sender:</span>
+                <span>{{ $tx.Sender }}</span>
+            </div>
+            <div class="item">
+                <span>Receiver:</span>
+                <span>{{ $tx.Receiver }}</span>
+            </div>
+            <div class="item">
+                <span>Amount:</span>
+                <span>{{ $tx.Amount }}</span>
+            </div>
+                    </div>
+                {{ end }}
+            </div>
+        </div>
+        <div class="last"></div>
+    {{ end }}
+</div>
+
+<h3>Pending transactions</h3>
+
+<div class="pending-txs">
+    {{ range $j, $tx := .BC.Transactions }}
+        <div class="transaction">
+            <div class="item">
+                <span>Sender:</span>
+                <span>{{ $tx.Sender }}</span>
+            </div>
+            <div class="item">
+                <span>Receiver:</span>
+                <span>{{ $tx.Receiver }}</span>
+            </div>
+            <div class="item">
+                <span>Amount:</span>
+                <span>{{ $tx.Amount }}</span>
+            </div>
+        </div>
+    {{ end }}
+</div>
+
+<h3>Nodes</h3>
+
+<div class="nodes">
+    {{ range $i, $node := .BC.Nodes }}
+        <div class="node">
+            <div class="item">
+                <span>Host</span>
+                <span>{{ $node.Host }}</span>
+            </div>
+            <div class="item">
+                <span>Port</span>
+                <span>{{ $node.Port }}</span>
+            </div>
+        </div>
+    {{ end }}
+</div>
+
+{{ end }}

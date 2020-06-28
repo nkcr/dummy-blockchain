@@ -1,0 +1,48 @@
+{{define "layout"}}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+
+    <link rel="stylesheet" href="/assets/stylesheets/flash.css">
+    <link rel="stylesheet" href="/assets/stylesheets/base.css">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+    {{ template "headContent" .}}
+
+    <title>{{ template "title" .}}</title>
+  </head>
+  <body>
+    <div class="header">
+      <div class="container">
+        <div class="title">
+          <a href="/"><h1>Dummy blockchain</h1></a>
+        </div>
+        <div class="links">
+          <a href="/transaction">Add a transaction</a>
+          <a href="/mine">Mine a block</a>
+          <a href="/node">Add a node</a>
+          <a href="/replace">Replace the chain</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      {{ template "content" .}}
+    </div>
+
+    <div class="footer">
+      <div class="container">
+        Dummy Blockchain - for educational purpose only - @nkcr
+      </div>
+    </div>
+
+  </body>
+</html>
+<!-- Can be redifined in the pages. We do it here to avoir a "not defined" error -->
+{{end}}
+{{define "headContent"}}{{end}}

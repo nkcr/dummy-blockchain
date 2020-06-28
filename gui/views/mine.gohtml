@@ -1,0 +1,21 @@
+{{ define "title" }}{{.Title}}{{ end }}
+
+{{ define "headContent" }}
+  <link rel="stylesheet" href="/assets/stylesheets/mine.css">
+{{ end }}
+
+{{ define "content" }}
+
+{{ if .Flash }}
+    <div class="flash">
+        {{ .Flash }}
+    </div>
+{{ end }}
+
+<h2>Mine a block</h2>
+
+<form action="/mine" method="post" >
+    <input type="submit" value="Mine a new block" />
+</form>
+
+{{ end }}

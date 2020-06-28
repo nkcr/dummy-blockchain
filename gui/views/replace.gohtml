@@ -1,0 +1,21 @@
+{{ define "title" }}{{.Title}}{{ end }}
+
+{{ define "headContent" }}
+  <link rel="stylesheet" href="/assets/stylesheets/replace.css">
+{{ end }}
+
+{{ define "content" }}
+
+{{ if .Flash }}
+    <div class="flash">
+        {{ .Flash }}
+    </div>
+{{ end }}
+
+<h2>Replace the chain if needed</h2>
+
+<form action="/replace" method="post" >
+    <input type="submit" value="Check and replace if needed" />
+</form>
+
+{{ end }}

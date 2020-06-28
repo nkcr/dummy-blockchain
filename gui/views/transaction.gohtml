@@ -1,0 +1,34 @@
+{{ define "title" }}{{.Title}}{{ end }}
+
+{{ define "headContent" }}
+  <link rel="stylesheet" href="/assets/stylesheets/transaction.css">
+{{ end }}
+
+{{ define "content" }}
+
+{{ if .Flash }}
+    <div class="flash">
+        {{ .Flash }}
+    </div>
+{{ end }}
+
+<h2>Add a transaction</h2>
+
+<form action="/transaction" method="post" >
+    <div class="row">
+        <label for="sender">Sender</label>
+        <input id="sender" required type="text" name="sender"/>
+    </div>
+    <div class="row">
+        <label for="receiver">Receiver</label>
+        <input id="receiver" required type="text" name="receiver"/>
+    </div>
+    <div class="row">
+        <label for="amount">Amount</label>
+        <input id="amount" required type="number" name="amount"/>
+    </div>  
+
+    <input type="submit" value="Submit Tx" />
+</form>
+
+{{ end }}
