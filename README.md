@@ -6,6 +6,8 @@ Simple Bitcoin-like blockchain for educational purpose
     <img src="docs/images/home.png"/>
 </div> 
 
+With `dummy-blockchain` you can get a feel on how the peer-to-peer Bitcoin protocol works by launching and interacting with multiple independent nodes.
+
 A node can do the following:
 
 - include a new transaction to its pending pool of transactions
@@ -85,10 +87,14 @@ POST /add_node
 ```bash
 POST /add_transaction
 
-# Boddy application/json
+# Body application/json
 {
     "Sender": "Alice",
     "Receiver": "Bob",
     "Amount": 10
 }
 ```
+
+## Note
+
+This code is adapted from the [Blockchain A-Z™: Learn How To Build Your First Blockchain](https://www.udemy.com/course/build-your-blockchain-az/) online course.
