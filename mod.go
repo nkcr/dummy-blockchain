@@ -182,3 +182,8 @@ func isValidHandler(blockchain *blockchain.Blockchain) http.HandlerFunc {
 func faviconHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "assets/images/favicon.ico")
 }
+
+// To build for the main distros:
+// env GOOS=darwin GOARCH=amd64 go build -o dummyblockchain.darwin-amd64
+// env GOOS=linux GOARCH=amd64 go build -o dummyblockchain.linux-amd64
+// env GOOS=windows GOARCH=amd64 go build -o dummyblockchain.windows-amd64.exe

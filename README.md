@@ -33,11 +33,25 @@ mod.go      <- the http server setup and entrypoint
 
 Each node is an http server. You can run as many as you want. The arguments are optional.
 
-The owner indicates who the transaction fees earned by the node will be sent to.
+You can either build and run a node from source, or use one of the realease,
+which are available for Linux, Mac, and Windows (check the release section of
+the repo).
+
+Build and run from source:
 
 ```bash
+# Build and run a node on http://localhost:8081
 go run mod.go -listen-addr :8081 -owner Alice
 ```
+
+Run from the release:
+
+```bash
+# Run a node on a Mac, using http://localhost:8081
+./dummyblockchain.darwin-amd64 -listen-addr :8081 -owner Alice
+```
+
+The owner indicates who the transaction fees earned by the node will be sent to.
 
 ## REST API
 
